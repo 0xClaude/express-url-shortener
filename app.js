@@ -10,26 +10,45 @@ mongoose.connect("mongodb://localhost:27017/urlDB");
 // Set up the Schema and model for the MongoDB structure
 // We need this in order to find values in our database
 const schema = new mongoose.Schema({
-	short: String,
 	url: String,
+	short: String,
+	visits: Number,
 });
-const url = mongoose.model("URLs", schema);
+const model = mongoose.model("urls", schema);
 
 // This is the rerouting part
 // it takes the short handle, looks it up in the database, and returns the URL
 app.route("/:url").get((req, res) => {
-	const redirect = url.findOne({ short: req.params.url }, (err, response) => {
+	model.findOne({ short: req.params.url }, (err, docs) => {
 		if (err) {
-			console.log(err);
+			res.send(err);
+			return;
 		} else {
-            // TODO What to do if there is no entry?
-			res.redirect(response.url);
+			// If no such URL is found, return this
+			if (!docs) {
+				res.send("No such entry");
+				return;
+			} else {
+				// Update the counter first
+				model.updateOne(
+					{ short: req.params.url },
+					{ views: (docs.views += 1) },
+					(updateError, updateResult) => {
+						if (updateError) {
+							res.send(updateError);
+						} else {
+                            // if all went well, redirect user
+							res.redirect(docs.url);
+						}
+					}
+				);
+			}
 		}
 	});
 });
 
 app.route("/").get((req, res) => {
-    // TODO create new reroute
+	// TODO a Form to create a new reroute
 	res.send("Hello, world!");
 });
 
