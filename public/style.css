@@ -1,9 +1,24 @@
 body {
-    text-align: center;
+	text-align: center;
 }
 
 .footer {
-   margin: 80vh 0 0 0;
-   padding: 0;
-   bottom: 0;
+	margin: 80vh 0 0 0;
+	padding: 0;
+	bottom: 0;
+}
+
+.login {
+	margin: 20%;
+	width: 20vw;
+	height: 20vh;
+	background-color: #efefef;
+	filter: blur(4px);
+}
+
+.login:hover {
+	filter: blur(0);
+	transition: linear;
+	transition-delay: 1ms;
+	transform: rotateZ(-45deg);
 }

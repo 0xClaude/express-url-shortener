@@ -1,12 +1,17 @@
+require("dotenv").config();
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const ejs = require("ejs");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
+const saltRounds = 10;
 
 mongoose.connect("mongodb://localhost:27017/urlDB");
 
@@ -16,8 +21,56 @@ const schema = new mongoose.Schema({
 	url: String,
 	short: String,
 	visits: Number,
+	//userID: Number // ! Uncomment this when user functionality is implemented
 });
 const model = mongoose.model("urls", schema);
+
+// Set up the User Schema
+const User = new mongoose.Schema({
+	login: String,
+	password: String,
+});
+
+app.route("/register")
+	.get((req, res) => {
+		res.render("register");
+	})
+	.post((req, res) => {
+		const login = req.body.mail;
+		const pass = req.body.password;
+
+		bcrypt.hash(pass, saltRounds, (err, hash) => {
+			// TODO Save user to database
+		});
+	});
+
+app.route("/mylinks")
+    .get((req, res) => {
+	    // TODO list personal links
+        // Check if user is logged in 
+});
+
+app.route("/")
+	.get((req, res) => {
+		// TODO check if the user is logged in, else show login screen
+		// TODO create login/register screen
+		// TODO a Form to create a new reroute
+		res.render("form");
+	})
+	.post((req, res) => {
+		const url = req.body.url;
+		const short = genId(5);
+
+		const newUrl = new model({
+			url: url,
+			short: short,
+			visits: 0,
+		});
+		newUrl.save().then(() => {
+			console.log("New entry saved");
+		});
+		res.render("submitted", { url: short });
+	});
 
 // This is the rerouting part
 // it takes the short handle, looks it up in the database, and returns the URL
@@ -65,27 +118,6 @@ function genId(number) {
 	}
 	return result;
 }
-
-app.route("/")
-	.get((req, res) => {
-		// TODO a Form to create a new reroute
-		res.render("form");
-	})
-	.post((req, res) => {
-		// TODO save the new reroute in database
-		const url = req.body.url;
-		const short = genId(5);
-
-		const newUrl = new model({
-			url: url,
-			short: short,
-			visits: 0,
-		});
-		newUrl.save().then(() => {
-			console.log("New entry saved");
-		});
-		res.render("submitted", { url: short });
-	});
 
 app.listen(3000, () => {
 	console.log("Server up and running");
